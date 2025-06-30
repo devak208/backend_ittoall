@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { DeviceService } from '../services/deviceService.js';
+import { DeviceService } from './device/index.js';
 
 const deviceService = new DeviceService();
 
@@ -35,7 +35,8 @@ class CronService {
     const jobName = 'expired-devices';
     
     // Run every hour at minute 0
-    const job = cron.schedule('0 * * * *', async () => {
+    //for testing */3 * * * * // 0 * * * *
+    const job = cron.schedule('*/3 * * * *', async () => {
       try {
         console.log('Starting expired devices processing...');
         const results = await deviceService.processExpiredDevices();
