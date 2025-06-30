@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1750923501439,
+      "tag": "0000_overjoyed_owl",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1751007375239,
+      "tag": "0001_lyrical_franklin_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1751011177466,
+      "tag": "0002_lush_enchantress",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1751012151328,
+      "tag": "0003_nice_captain_cross",
+      "breakpoints": true
+    }
+  ]
+}
