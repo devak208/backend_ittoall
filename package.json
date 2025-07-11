@@ -8,8 +8,10 @@
     "dev": "nodemon src/index.js",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:push": "drizzle-kit push",
+    "studio": "drizzle-kit studio",
     "drizzle:migrate": "drizzle-kit migrate",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed": "node scripts/generateFirecrackerProducts.js"
   },
   "keywords": [
     "microservice",
@@ -21,7 +23,10 @@
   "description": "Device approval microservice with email and Android ID management",
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
+    "bcryptjs": "^3.0.2",
+    "better-auth": "^1.2.12",
     "chalk": "^5.4.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "drizzle-orm": "^0.44.2",
@@ -29,12 +34,14 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.1",
     "node-cron": "^3.0.3",
-    "postgres": "^3.4.3",
+    "nodemailer": "^7.0.4",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.2",
+    "drizzle-kit": "^0.31.4",
     "nodemon": "^3.0.2"
   }
 }

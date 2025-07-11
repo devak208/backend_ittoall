@@ -9,6 +9,7 @@ export class DeviceActionService {
   /**
    * Disable a device (move to disabled_devices table)
    */
+  // Fix for disableDevice method
   async disableDevice(androidId, actionBy = 'system', notes = null) {
     try {
       const device = await this.getDeviceByAndroidId(androidId);
@@ -17,48 +18,58 @@ export class DeviceActionService {
         throw new Error('Device not found');
       }
       
-      // Move device to disabled_devices table
-      const disabledDevice = await db
-        .insert(disabledDevices)
-        .values({
-          email: device.email,
-          androidId: device.androidId,
-          originalCreatedAt: device.createdAt,
-          wasApproved: device.isApproved,
-          approvedAt: device.approvedAt,
-          expiresAt: device.expiresAt,
-          disabledBy: actionBy,
-          disableReason: notes || 'Device disabled',
-          originalNotes: device.notes,
-        })
-        .returning();
-
-      // Log the disable action in history (before deleting)
-      await this.logDeviceHistory(
-        device.id,
-        'disabled',
-        device.isApproved,
-        false,
-        actionBy,
-        notes || 'Device disabled and moved to disabled_devices table'
-      );
-
-      // Remove device from main devices table
-      await db.delete(devices).where(eq(devices.androidId, androidId));
-
+      // Use transaction for insert, delete, and logging
+      let disabledDevice;
+      await db.transaction(async (tx) => {
+        // Insert into disabled_devices table
+        await tx
+          .insert(disabledDevices)
+          .values({
+            email: device.email,
+            androidId: device.androidId,
+            originalCreatedAt: device.createdAt,
+            wasApproved: device.isApproved,
+            approvedAt: device.approvedAt,
+            expiresAt: device.expiresAt,
+            disabledBy: actionBy,
+            disableReason: notes || 'Device disabled',
+            originalNotes: device.notes,
+          });
+        
+        // Fetch the newly inserted disabled device
+        const result = await tx
+          .select()
+          .from(disabledDevices)
+          .where(eq(disabledDevices.androidId, androidId))
+          .limit(1);
+          
+        disabledDevice = result[0];
+  
+        // Log the disable action in history (before deleting)
+        await tx.insert(deviceHistory).values({
+          deviceId: device.id,
+          action: 'disabled',
+          previousStatus: device.isApproved,
+          newStatus: false,
+          actionBy,
+          notes: notes || 'Device disabled and moved to disabled_devices table'
+        });
+  
+        // Remove device from main devices table
+        await tx.delete(devices).where(eq(devices.androidId, androidId));
+      });
+  
       return { 
         success: true, 
         message: 'Device disabled and moved to disabled devices table',
-        disabledDevice: disabledDevice[0]
+        disabledDevice: disabledDevice
       };
     } catch (error) {
       throw new Error(`Failed to disable device: ${error.message}`);
     }
   }
 
-  /**
-   * Reject a device registration request (move to rejected_devices table)
-   */
+  // Fix for rejectDevice method
   async rejectDevice(androidId, actionBy = 'admin', notes = null) {
     try {
       const device = await this.getDeviceByAndroidId(androidId);
@@ -66,41 +77,53 @@ export class DeviceActionService {
       if (!device) {
         throw new Error('Device not found');
       }
-
+  
       if (device.isApproved) {
         throw new Error('Cannot reject an already approved device. Please disable it instead.');
       }
-
-      // Move device to rejected_devices table
-      const rejectedDevice = await db
-        .insert(rejectedDevices)
-        .values({
-          email: device.email,
-          androidId: device.androidId,
-          originalCreatedAt: device.createdAt,
-          rejectedBy: actionBy,
-          rejectionReason: notes || 'Device registration rejected',
-          originalNotes: device.notes,
-        })
-        .returning();
-
-      // Log the rejection in history (before deleting)
-      await this.logDeviceHistory(
-        device.id,
-        'rejected',
-        device.isApproved, // will be false
-        false, // new approval state
-        actionBy,
-        notes || 'Device registration rejected and moved to rejected_devices table'
-      );
-
-      // Remove device from main devices table
-      await db.delete(devices).where(eq(devices.androidId, androidId));
-
+  
+      // Use transaction for insert, delete, and logging
+      let rejectedDevice;
+      await db.transaction(async (tx) => {
+        // Insert into rejected_devices table
+        await tx
+          .insert(rejectedDevices)
+          .values({
+            email: device.email,
+            androidId: device.androidId,
+            originalCreatedAt: device.createdAt,
+            rejectedBy: actionBy,
+            rejectionReason: notes || 'Device registration rejected',
+            originalNotes: device.notes,
+          });
+        
+        // Fetch the newly inserted rejected device
+        const result = await tx
+          .select()
+          .from(rejectedDevices)
+          .where(eq(rejectedDevices.androidId, androidId))
+          .limit(1);
+          
+        rejectedDevice = result[0];
+  
+        // Log the rejection in history (before deleting)
+        await tx.insert(deviceHistory).values({
+          deviceId: device.id,
+          action: 'rejected',
+          previousStatus: device.isApproved, // will be false
+          newStatus: false, // new approval state
+          actionBy,
+          notes: notes || 'Device registration rejected and moved to rejected_devices table'
+        });
+  
+        // Remove device from main devices table
+        await tx.delete(devices).where(eq(devices.androidId, androidId));
+      });
+  
       return { 
         success: true, 
         message: 'Device registration rejected and moved to rejected devices table',
-        rejectedDevice: rejectedDevice[0]
+        rejectedDevice: rejectedDevice
       };
     } catch (error) {
       throw new Error(`Failed to reject device: ${error.message}`);

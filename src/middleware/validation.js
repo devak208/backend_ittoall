@@ -43,6 +43,41 @@ const schemas = {
       'any.required': 'Android ID is required',
     }),
   }),
+
+  // Product validation schemas
+  product: Joi.object({
+    proCode: Joi.string().min(1).max(50).required().messages({
+      'string.min': 'Product code must be at least 1 character long',
+      'string.max': 'Product code must not exceed 50 characters',
+      'any.required': 'Product code is required',
+    }),
+    productName: Joi.string().min(1).max(255).required().messages({
+      'string.min': 'Product name must be at least 1 character long',
+      'string.max': 'Product name must not exceed 255 characters',
+      'any.required': 'Product name is required',
+    }),
+    price: Joi.number().positive().precision(2).required().messages({
+      'number.positive': 'Price must be a positive number',
+      'any.required': 'Price is required',
+    }),
+    description: Joi.string().max(1000).optional().allow(''),
+  }),
+
+  productUpdate: Joi.object({
+    proCode: Joi.string().min(1).max(50).optional().messages({
+      'string.min': 'Product code must be at least 1 character long',
+      'string.max': 'Product code must not exceed 50 characters',
+    }),
+    productName: Joi.string().min(1).max(255).optional().messages({
+      'string.min': 'Product name must be at least 1 character long',
+      'string.max': 'Product name must not exceed 255 characters',
+    }),
+    price: Joi.number().positive().precision(2).optional().messages({
+      'number.positive': 'Price must be a positive number',
+    }),
+    description: Joi.string().max(1000).optional().allow(''),
+    isActive: Joi.boolean().optional(),
+  }).min(1),
 };
 
 // Validation middleware factory
@@ -81,3 +116,7 @@ export const validate = (schema, source = 'body') => {
 
 // Export validation schemas
 export const validationSchemas = schemas;
+
+// Product validation middleware
+export const validateProduct = validate(schemas.product);
+export const validateProductUpdate = validate(schemas.productUpdate);

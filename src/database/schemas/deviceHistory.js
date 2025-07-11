@@ -1,16 +1,15 @@
-import { pgTable, uuid, varchar, boolean, timestamp, text } from 'drizzle-orm/pg-core';
-import { devices } from './devices.js';
+import { mysqlTable, bigint, varchar, datetime, boolean } from "drizzle-orm/mysql-core"
+import { sql } from "drizzle-orm"
+import { devices } from "./devices.js"
 
-/**
- * Table for tracking device history and audit trail
- */
-export const deviceHistory = pgTable('device_history', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  deviceId: uuid('device_id').references(() => devices.id, { onDelete: 'cascade' }).notNull(),
-  action: varchar('action', { length: 50 }).notNull(), // 'approved', 'expired', 'extended', 'disabled'
-  previousStatus: boolean('previous_status'),
-  newStatus: boolean('new_status'),
-  actionBy: varchar('action_by', { length: 255 }),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  notes: text('notes'),
-});
+export const deviceHistory = mysqlTable("device_history", {
+  id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+
+  deviceId: bigint("device_id", { mode: "number" }).notNull().references(() => devices.id, { onDelete: "cascade" }),
+  action: varchar("action", { length: 50 }).notNull(),
+  previousStatus: boolean("previous_status"),
+  newStatus: boolean("new_status"),
+  actionBy: varchar("action_by", { length: 255 }),
+  createdAt: datetime("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  notes: varchar("notes", { length: 1000 }),
+})

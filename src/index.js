@@ -3,12 +3,15 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser'; // Add this import
 import deviceRoutes from './routes/deviceRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import authCustomRoutes from './routes/authCustomRoutes.js';
+import productRoutes from './routes/productRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { cronService } from './services/cronService.js';
 import chalk from 'chalk';
-
-
+import { EmailService } from './services/emailService.js';
 
 // Load environment variables
 dotenv.config();
@@ -21,13 +24,15 @@ app.use(helmet());
 
 // CORS configuration  
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] // Replace with your actual domain
-    : true, // Allow all origins in development for mobile testing
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  origin: [
+    'http://localhost:3000',
+    process.env.FRONTEND_URL
+  ],
+  credentials: true // This is important for cookies to work with CORS
 }));
+
+// Cookie parser middleware
+app.use(cookieParser());
 
 // Rate limiting
 const limiter = rateLimit({
@@ -75,19 +80,20 @@ app.use((req, res, next) => {
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/api/v1/health', (req, res) => {
   res.json({
     success: true,
     message: 'Device Approval Service is running',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
+    // ...existing code...
   });
 });
 
-
+// API routes
 // API routes
 app.use('/api/v1', deviceRoutes);
+app.use('/api/v1/products', productRoutes);
+// app.use('/api/auth', authRoutes); // Remove Better Auth handler
+app.use('/api/v1/auth', authCustomRoutes); // Custom auth routes
 
 // 404 handler
 app.use(notFoundHandler);
@@ -96,8 +102,13 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Start server
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(` server is running in port : ${PORT}`);
+  
+  // Test email configuration
+  const emailService = new EmailService();
+  await emailService.testEmailConnection();
+  
   // Start cron jobs
   cronService.startAll();
 });
