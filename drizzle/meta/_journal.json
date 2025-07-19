@@ -15,6 +15,13 @@
       "when": 1751952383764,
       "tag": "0001_low_scrambler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1752230815073,
+      "tag": "0002_supreme_obadiah_stane",
+      "breakpoints": true
     }
   ]
 }

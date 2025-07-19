@@ -12,6 +12,8 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { cronService } from './services/cronService.js';
 import chalk from 'chalk';
 import { EmailService } from './services/emailService.js';
+// Import order routes
+import orderRoutes from './routes/orderRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +28,7 @@ app.use(helmet());
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://192.168.90.56:3000',
     process.env.FRONTEND_URL
   ],
   credentials: true // This is important for cookies to work with CORS
@@ -94,6 +97,9 @@ app.use('/api/v1', deviceRoutes);
 app.use('/api/v1/products', productRoutes);
 // app.use('/api/auth', authRoutes); // Remove Better Auth handler
 app.use('/api/v1/auth', authCustomRoutes); // Custom auth routes
+
+// Use order routes
+app.use('/api/v1/orders', orderRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

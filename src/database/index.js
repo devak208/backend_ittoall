@@ -10,3 +10,6 @@ export { deviceHistory } from "./schemas/deviceHistory.js"
 
 // Product schemas
 export { products } from "./schemas/products.js"
+
+// Order schemas
+export { orders, orderItems } from "./schemas/orders.js"
